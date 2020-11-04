@@ -1,2 +1,4 @@
 # Javascript - Snake
-Online test of Javascript-Snake
+
+Online testing
+https://konakun.github.io/
