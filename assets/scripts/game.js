@@ -17,6 +17,9 @@ var minionColor = "#000080"
 var rows = 48;
 var columns = 72;
 var grid = 10;
+var msgX = 0;
+var msgY = 0;
+var msgSize = 0;
 
 /* Location Variables */
 var x = 0;
@@ -63,6 +66,7 @@ var eaten = false;
 var specialFood = false;
 var appear = false;
 
+var msgTime = 0;
 
 /***     Keyboard Functions     ***/
 
@@ -155,7 +159,9 @@ function eatFood(){
 }
 
 function trailStart(){
-	snakeTrail.push({x: x, y: y});
+	if(snakeTrail.length < length){
+		snakeTrail.push({x: x, y: y});
+	}
 }
 
 function updateTrail(){
@@ -166,10 +172,8 @@ function updateTrail(){
 }
 
 function lengthUpdate(){
-	var Tscore = score*2;
-	if(Tscore%3 == 0 && Tscore/3 > 0){
-		length+=2;
-		
+	if(score%3 == 0){
+		length++;
 	}
 }
 function speedUpdate(){
@@ -183,16 +187,27 @@ function speedUpdate(){
 
 function gameOver(){
     if(x < 0 || y < 0 || x > canvas.width-snakeSize || y > canvas.height-snakeSize){
-        gameover = true;
-        direction = 0;
+        gameover = true; 
+    }
+	if(length > 1){
+		for(var n=1; n<length; n++){
+			if(x == snakeTrail[n].x && x <= snakeTrail[n].x+snakeSize && y == snakeTrail[n].y && y <= snakeTrail[n].y+snakeSize){
+				gameover = true;
+			}
+		}
+	}
+	if(gameover){
+		direction = 0;
         alert("Game over, your score was: " + score);
         location.reload();
-        clearInterval(interval); 
-    }
-    /*for()
-        tail = lose;
-    */
+        clearInterval(interval);
+	}
 }
+
+function scoreUpdate(){
+	document.getElementById('score').innerHTML = score;
+}
+
 
 /***         Debugger           ***/
     function debuggerTest(){
@@ -234,20 +249,21 @@ function startText(){
 
 function draw(){
     ctx.clearRect(0,0, canvas.width, canvas.height);
-    gameOver();
     if(direction == 0){
         if(!start){
+			trailStart();
             startProcess();
         }
         startText();
     }
-	trailStart();
+	gameOver();
     printSnake();
     foodAppearance();
     printFood();
     eatFood();
 	updateTrail();
 	snakeDirection();
+	scoreUpdate();
     debuggerTest();
 }
 
