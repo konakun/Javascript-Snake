@@ -16,7 +16,7 @@ var minionColor = "#000080"
 //Map Parameters
 var rows = 48;
 var columns = 72;
-var separation = 10;
+var grid = 10;
 
 /* Location Variables */
 var x = 0;
@@ -46,17 +46,21 @@ Direction
 var direction = 0;
 
 //Difficulty Parameters
-
+var speed = 5;
+var blockProbability = 0;
+var blockNumber = 0;
 
 //Gameplay Parameters
 
+var snakeTrail = [];
 var start = false;
 var gameover = false;
 var score = 0;
-var lenght = 1;
+var length = 1;
 
 /* Food Variables */
 var eaten = false;
+var specialFood = false;
 var appear = false;
 
 
@@ -83,33 +87,38 @@ function keyDownHandler(e){
 function startProcess(){
     x = Math.floor((Math.random() * ((columns - 1)- 0) + 0)*10);
     y = Math.floor((Math.random() * ((rows - 1)- 0) + 0)*10);
-    start = true;
+    x = Math.round(x/10)*10;
+	y = Math.round(y/10)*10;
+	
+	start = true;
 }
 
 function printSnake(){
     ctx.beginPath();
-    ctx.rect(x, y, snakeSize, snakeSize);
-    ctx.fillStyle = snakeColor;
-    ctx.fill();
-    ctx.closePath();
+	for(var n=0; n<length; n++){
+		ctx.rect(snakeTrail[n].x, snakeTrail[n].y, snakeSize, snakeSize);
+		ctx.fillStyle = snakeColor;
+		ctx.fill();
+		ctx.closePath();
+	}
 }
 
 function snakeDirection(){
     if(direction == 1){
         pastdirection = direction;
-        y--;
+        y-=grid;
     }
     if(direction == 2){
         pastdirection = direction;
-        y++;
+        y+=grid;
     }
     if(direction == 3){
         pastdirection = direction;
-        x--;
+        x-=grid;
     }
     if(direction == 4){
         pastdirection = direction;
-        x++;
+        x+=grid;
     }
 }
 
@@ -119,7 +128,9 @@ function foodAppearance(){
     if(!appear){
         foodX = Math.floor((Math.random() * ((columns - 1)- 0) + 0)*10);
         foodY = Math.floor((Math.random() * ((rows - 1)- 0) + 0)*10);
-        if(x > foodX && x < foodX+foodSize && y > foodY && y < foodY+foodSize){
+		foodX = Math.round(foodX/10)*10;
+		foodY = Math.round(foodY/10)*10;
+		if(x > foodX && x < foodX+foodSize && y > foodY && y < foodY+foodSize){
             foodAppearance();
         }
         appear = true;
@@ -135,21 +146,43 @@ function printFood(){
 }
 
 function eatFood(){
-    if(x >= foodX && x <= foodX+foodSize && y >= foodY && y <= foodY+foodSize ||
-       x+snakeSize >= foodX && x+snakeSize <= foodX+foodSize && y+snakeSize >= foodY && y <= foodY+foodSize ||
-       x+snakeSize >= foodX && x+snakeSize <= foodX+foodSize && y >= foodY && y <= foodY+foodSize ||
-       x >= foodX && x <= foodX+foodSize && y+snakeSize >= foodY && y+snakeSize <= foodY+foodSize){
+    if(x == foodX && x <= foodX+foodSize && y == foodY && y <= foodY+foodSize){
         score++;
         appear = false;
+		lengthUpdate();
+		speedUpdate();
     }
 }
 
+function trailStart(){
+	snakeTrail.push({x: x, y: y});
+}
+
+function updateTrail(){
+	snakeTrail.push({x: x, y: y});
+	while(snakeTrail.length > length){
+		snakeTrail.shift();
+	}
+}
+
+function lengthUpdate(){
+	var Tscore = score*2;
+	if(Tscore%3 == 0 && Tscore/3 > 0){
+		length+=2;
+		
+	}
+}
+function speedUpdate(){
+	if(score%5){
+		speed++;
+	}
+}
 /***      Blocks Functions      ***/
 
 /***     Gameplay Functions     ***/
 
 function gameOver(){
-    if(x < 0 || y < 0 || x+snakeSize > canvas.width || y+snakeSize > canvas.height){
+    if(x < 0 || y < 0 || x > canvas.width-snakeSize || y > canvas.height-snakeSize){
         gameover = true;
         direction = 0;
         alert("Game over, your score was: " + score);
@@ -186,7 +219,7 @@ function gameOver(){
         document.getElementById('snY').innerHTML = y;
         document.getElementById('fdX').innerHTML = foodX;
         document.getElementById('fdY').innerHTML = foodY;
-        document.getElementById('len').innerHTML = lenght;
+        document.getElementById('len').innerHTML = length;
         document.getElementById('dir').innerHTML = dirText;
     }
 
@@ -208,12 +241,14 @@ function draw(){
         }
         startText();
     }
+	trailStart();
     printSnake();
     foodAppearance();
     printFood();
     eatFood();
-    snakeDirection();
+	updateTrail();
+	snakeDirection();
     debuggerTest();
 }
 
-var interval = setInterval(draw, 10);
+var interval = setInterval(draw, 100);
